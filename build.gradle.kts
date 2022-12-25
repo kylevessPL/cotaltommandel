@@ -28,5 +28,5 @@ dependencies {
 }
 
 application {
-    mainClass.set("pl.piasta.concurrent.ConcurrentSimulationAppKt")
+    mainClass.set("pl.piasta.cotaltommandel.CotalTommandelKt")
 }

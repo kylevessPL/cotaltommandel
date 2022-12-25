@@ -1,1 +1,1 @@
-rootProject.name = "concurrent"
+rootProject.name = "cotaltommandel"

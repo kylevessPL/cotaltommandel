@@ -1,4 +1,4 @@
-package pl.piasta.concurrent
+package pl.piasta.cotaltommandel
 
 import javafx.scene.paint.Color
 import javafx.scene.text.FontWeight
