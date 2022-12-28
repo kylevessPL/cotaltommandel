@@ -25,6 +25,7 @@ javafx {
 
 dependencies {
     implementation("no.tornado:tornadofx:2.0.0-SNAPSHOT")
+    implementation("wtf.metio.storage-units:storage-units-model:2022.12.13")
 }
 
 application {

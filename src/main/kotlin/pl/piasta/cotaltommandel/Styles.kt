@@ -1,40 +1,35 @@
 package pl.piasta.cotaltommandel
 
-import javafx.scene.paint.Color
-import javafx.scene.text.FontWeight
 import tornadofx.Stylesheet
 import tornadofx.box
+import tornadofx.cssclass
 import tornadofx.multi
+import tornadofx.percent
 import tornadofx.px
 
 class Styles : Stylesheet() {
+    companion object {
+        val driveLabel by cssclass()
+        val actionPane by cssclass()
+    }
+
     init {
         root {
-            backgroundColor = multi(Color.web("32302F"))
+            prefWidth = 400.px
+            prefHeight = 600.px
         }
-        label {
-            fontSize = 20.px
-            padding = box(10.px)
-            fontWeight = FontWeight.BOLD
-            textFill = Color.WHITE
-        }
-        listView {
-            // Disable focus
-            faintFocusColor = Color.TRANSPARENT
-            focusColor = Color.TRANSPARENT
+        driveLabel {
+            fontSize = 14.px
         }
         button {
-            borderRadius = multi(box(0.px))
-            backgroundRadius = multi(box(0.px))
-            backgroundColor = multi(Color.web("32302F"))
-            borderColor = multi(box(Color.web("928374")))
-            borderWidth = multi(box(4.px))
-            fill = Color.WHITE
-            textFill = Color.WHITE
+            minWidth = 50.px
+            minHeight = 50.px
+            endMargin = 20.px
+            backgroundRadius = multi(box(50.percent))
         }
-        progressBar {
-            borderRadius = multi(box(0.px))
-            backgroundRadius = multi(box(0.px))
+        actionPane {
+            padding = box(5.px)
+            spacing = 5.px
         }
     }
 }
