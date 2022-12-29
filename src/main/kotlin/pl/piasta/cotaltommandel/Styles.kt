@@ -12,14 +12,13 @@ class Styles : Stylesheet() {
     companion object {
         val clientPane by cssclass()
         val drivePane by cssclass()
-        val treePane by cssclass()
         val actionPane by cssclass()
         val driveLabel by cssclass()
     }
 
     init {
         root {
-            prefWidth = 600.px
+            prefWidth = 800.px
             prefHeight = 600.px
         }
         button {
@@ -27,6 +26,9 @@ class Styles : Stylesheet() {
             minHeight = 50.px
             endMargin = 20.px
             backgroundRadius = multi(box(50.percent))
+        }
+        treeView {
+            minHeight = 80.px
         }
         scrollPane {
             minWidth = 200.px
@@ -39,9 +41,6 @@ class Styles : Stylesheet() {
         }
         drivePane {
             padding = box(0.px, 0.px, 0.99.px, 0.px)
-        }
-        treePane {
-            minHeight = 80.px
         }
         actionPane {
             padding = box(5.px)

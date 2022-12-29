@@ -9,7 +9,6 @@ import pl.piasta.cotaltommandel.FSNode.Directory.Root
 import pl.piasta.cotaltommandel.FSNode.File
 import pl.piasta.cotaltommandel.Styles.Companion.driveLabel
 import pl.piasta.cotaltommandel.Styles.Companion.drivePane
-import pl.piasta.cotaltommandel.Styles.Companion.treePane
 import tornadofx.Fragment
 import tornadofx.addClass
 import tornadofx.asObservable
@@ -62,7 +61,6 @@ class DriveTreeViewFragment : Fragment("Drive Tree View") {
                     }
                 }
             }
-            addClass(treePane)
         }
         addClass(drivePane)
     }
