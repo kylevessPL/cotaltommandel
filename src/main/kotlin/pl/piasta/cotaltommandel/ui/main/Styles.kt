@@ -1,4 +1,4 @@
-package pl.piasta.cotaltommandel.ui.style
+package pl.piasta.cotaltommandel.ui.main
 
 import javafx.geometry.Pos.BASELINE_RIGHT
 import javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER

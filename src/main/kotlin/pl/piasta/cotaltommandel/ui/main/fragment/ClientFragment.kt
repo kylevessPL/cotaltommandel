@@ -1,4 +1,4 @@
-package pl.piasta.cotaltommandel.ui.fragment
+package pl.piasta.cotaltommandel.ui.main.fragment
 
 import com.devskiller.friendly_id.FriendlyId
 import javafx.beans.binding.Bindings.or
@@ -16,10 +16,10 @@ import pl.piasta.cotaltommandel.common.minus
 import pl.piasta.cotaltommandel.common.plus
 import pl.piasta.cotaltommandel.common.replaceAll
 import pl.piasta.cotaltommandel.common.updateStatus
-import pl.piasta.cotaltommandel.ui.FSNode
-import pl.piasta.cotaltommandel.ui.shared.SharedDataScope
-import pl.piasta.cotaltommandel.ui.style.Styles.Companion.actionPane
-import pl.piasta.cotaltommandel.ui.style.Styles.Companion.progressLabel
+import pl.piasta.cotaltommandel.ui.main.FSNode
+import pl.piasta.cotaltommandel.ui.main.SharedDataScope
+import pl.piasta.cotaltommandel.ui.main.Styles.Companion.actionPane
+import pl.piasta.cotaltommandel.ui.main.Styles.Companion.progressLabel
 import tornadofx.Controller
 import tornadofx.Fragment
 import tornadofx.TaskStatus

@@ -3,8 +3,8 @@ package pl.piasta.cotaltommandel
 import javafx.scene.image.Image
 import javafx.stage.Stage
 import pl.piasta.cotaltommandel.common.Constants.IMAGE_ASSETS
-import pl.piasta.cotaltommandel.ui.style.Styles
-import pl.piasta.cotaltommandel.ui.view.MainView
+import pl.piasta.cotaltommandel.ui.main.MainView
+import pl.piasta.cotaltommandel.ui.main.Styles
 import tornadofx.App
 import tornadofx.launch
 import tornadofx.setStageIcon

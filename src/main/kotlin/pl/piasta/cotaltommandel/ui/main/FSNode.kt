@@ -1,4 +1,4 @@
-package pl.piasta.cotaltommandel.ui
+package pl.piasta.cotaltommandel.ui.main
 
 import wtf.metio.storageunits.model.Byte
 

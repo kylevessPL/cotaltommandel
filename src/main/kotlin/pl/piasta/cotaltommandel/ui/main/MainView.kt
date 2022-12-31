@@ -1,16 +1,14 @@
-package pl.piasta.cotaltommandel.ui.view
+package pl.piasta.cotaltommandel.ui.main
 
 import javafx.scene.image.Image
 import javafx.scene.layout.Pane
 import javafx.scene.layout.Priority.ALWAYS
 import pl.piasta.cotaltommandel.common.Constants.IMAGE_ASSETS
 import pl.piasta.cotaltommandel.common.asView
-import pl.piasta.cotaltommandel.ui.fragment.ClientFragment
-import pl.piasta.cotaltommandel.ui.fragment.DriveFragment
-import pl.piasta.cotaltommandel.ui.shared.SharedDataScope
-import pl.piasta.cotaltommandel.ui.shared.SharedModel
-import pl.piasta.cotaltommandel.ui.style.Styles.Companion.actionPane
-import pl.piasta.cotaltommandel.ui.style.Styles.Companion.addClientButton
+import pl.piasta.cotaltommandel.ui.main.Styles.Companion.actionPane
+import pl.piasta.cotaltommandel.ui.main.Styles.Companion.addClientButton
+import pl.piasta.cotaltommandel.ui.main.fragment.ClientFragment
+import pl.piasta.cotaltommandel.ui.main.fragment.DriveFragment
 import tornadofx.View
 import tornadofx.ViewModel
 import tornadofx.action

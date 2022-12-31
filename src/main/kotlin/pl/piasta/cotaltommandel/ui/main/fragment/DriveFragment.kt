@@ -1,16 +1,16 @@
-package pl.piasta.cotaltommandel.ui.fragment
+package pl.piasta.cotaltommandel.ui.main.fragment
 
 import javafx.scene.control.TreeItem
 import javafx.scene.image.Image
 import javafx.scene.layout.Priority.ALWAYS
 import pl.piasta.cotaltommandel.common.Constants.IMAGE_ASSETS
 import pl.piasta.cotaltommandel.common.asView
-import pl.piasta.cotaltommandel.ui.FSNode
-import pl.piasta.cotaltommandel.ui.FSNode.Directory
-import pl.piasta.cotaltommandel.ui.FSNode.Directory.Root
-import pl.piasta.cotaltommandel.ui.FSNode.File
-import pl.piasta.cotaltommandel.ui.style.Styles.Companion.driveLabel
-import pl.piasta.cotaltommandel.ui.style.Styles.Companion.drivePane
+import pl.piasta.cotaltommandel.ui.main.FSNode
+import pl.piasta.cotaltommandel.ui.main.FSNode.Directory
+import pl.piasta.cotaltommandel.ui.main.FSNode.Directory.Root
+import pl.piasta.cotaltommandel.ui.main.FSNode.File
+import pl.piasta.cotaltommandel.ui.main.Styles.Companion.driveLabel
+import pl.piasta.cotaltommandel.ui.main.Styles.Companion.drivePane
 import tornadofx.Fragment
 import tornadofx.addClass
 import tornadofx.cellFormat

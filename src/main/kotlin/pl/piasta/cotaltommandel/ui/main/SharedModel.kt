@@ -1,6 +1,5 @@
-package pl.piasta.cotaltommandel.ui.shared
+package pl.piasta.cotaltommandel.ui.main
 
-import pl.piasta.cotaltommandel.ui.FSNode
 import tornadofx.Scope
 import tornadofx.asObservable
 
