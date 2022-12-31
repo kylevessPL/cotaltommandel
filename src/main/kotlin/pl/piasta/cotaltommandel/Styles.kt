@@ -1,5 +1,6 @@
 package pl.piasta.cotaltommandel
 
+import javafx.geometry.Pos.BASELINE_RIGHT
 import javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER
 import tornadofx.Stylesheet
 import tornadofx.box
@@ -10,22 +11,16 @@ import tornadofx.px
 
 class Styles : Stylesheet() {
     companion object {
-        val clientPane by cssclass()
-        val drivePane by cssclass()
         val actionPane by cssclass()
+        val addClientButton by cssclass()
         val driveLabel by cssclass()
+        val progressLabel by cssclass()
     }
 
     init {
         root {
             prefWidth = 800.px
             prefHeight = 600.px
-        }
-        button {
-            minWidth = 50.px
-            minHeight = 50.px
-            endMargin = 20.px
-            backgroundRadius = multi(box(50.percent))
         }
         treeView {
             minHeight = 80.px
@@ -36,19 +31,22 @@ class Styles : Stylesheet() {
             fitToHeight = true
             hBarPolicy = NEVER
         }
-        clientPane {
-            padding = box(0.px, 0.px, 0.49.px, 0.px)
-        }
-        drivePane {
-            padding = box(0.px, 0.px, 0.99.px, 0.px)
-        }
         actionPane {
             padding = box(5.px)
             spacing = 5.px
         }
+        addClientButton {
+            minWidth = 50.px
+            minHeight = 50.px
+            backgroundRadius = multi(box(50.percent))
+        }
         driveLabel {
             fontSize = 14.px
             padding = box(5.px)
+        }
+        progressLabel {
+            alignment = BASELINE_RIGHT
+            minWidth = 30.px
         }
     }
 }

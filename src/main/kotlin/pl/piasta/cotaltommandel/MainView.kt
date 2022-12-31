@@ -5,11 +5,14 @@ import javafx.scene.layout.Pane
 import javafx.scene.layout.Priority.ALWAYS
 import pl.piasta.cotaltommandel.Constants.IMAGE_ASSETS
 import pl.piasta.cotaltommandel.Styles.Companion.actionPane
-import pl.piasta.cotaltommandel.Styles.Companion.clientPane
+import pl.piasta.cotaltommandel.Styles.Companion.addClientButton
 import tornadofx.View
+import tornadofx.ViewModel
 import tornadofx.action
 import tornadofx.addClass
+import tornadofx.asObservable
 import tornadofx.button
+import tornadofx.find
 import tornadofx.hbox
 import tornadofx.hgrow
 import tornadofx.scrollpane
@@ -18,9 +21,8 @@ import tornadofx.vbox
 import tornadofx.vgrow
 
 class MainView : View("Cotal Tommandel") {
-    private val controller: MainController by inject()
+    private val viewModel: MainViewModel by inject()
     private lateinit var clientView: Pane
-    private lateinit var serverTreeView: DriveTreeViewFragment
 
     override val root = vbox {
         splitpane {
@@ -31,10 +33,12 @@ class MainView : View("Cotal Tommandel") {
                         hgrow = ALWAYS
                     }
                 }
-                addClass(clientPane)
             }
             scrollpane {
-                serverTreeView = find(DriveTreeViewFragment::drive to "Server")
+                val serverTreeView = find<DriveFragment>(
+                    DriveFragment::drive to "Server",
+                    DriveFragment::nodes to viewModel.sharedModel.serverFiles
+                )
                 add(serverTreeView)
             }
         }
@@ -42,14 +46,22 @@ class MainView : View("Cotal Tommandel") {
             button {
                 graphic = Image("$IMAGE_ASSETS/add-client.png").asView()
                 action {
-                    val client = find<DriveTreeViewFragment>(DriveTreeViewFragment::drive to controller.newDriveName())
+                    val client = find(ClientFragment::class, SharedDataScope(viewModel.sharedModel))
                     clientView.add(client)
                 }
-            }
-            button {
-                graphic = Image("$IMAGE_ASSETS/run.png").asView()
+                addClass(addClientButton)
             }
             addClass(actionPane)
         }
     }
+}
+
+class SharedModel {
+    val serverFiles = mutableListOf<FSNode>().asObservable()
+    val clientPriority = mutableMapOf<Int, Double>()
+    var clientCount = 0
+}
+
+class MainViewModel : ViewModel() {
+    val sharedModel = SharedModel()
 }
