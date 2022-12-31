@@ -145,7 +145,7 @@ internal class ClientViewModel : ViewModel() {
 internal class ClientController : Controller() {
     fun findServerClientDirectory(serverFiles: MutableList<FSNode>, clientName: String) = serverFiles
         .filterIsInstance<FSNode.Directory>()
-        .firstOrNull { e -> e.dirname == clientName }
+        .firstOrNull { e -> e.name == clientName }
 
     fun createFile() = FSNode.File(FriendlyId.createFriendlyId(), Random.nextLong(1, 900000000).asByte())
 

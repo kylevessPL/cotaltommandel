@@ -45,7 +45,7 @@ internal class DriveFragment : Fragment("Drive Fragment") {
                 with(it) {
                     when (this) {
                         is Directory -> {
-                            text = dirname
+                            text = name
                             graphic = Image(
                                 when (this) {
                                     is Root -> "$IMAGE_ASSETS/directory-root.png"
@@ -55,7 +55,7 @@ internal class DriveFragment : Fragment("Drive Fragment") {
                         }
 
                         is File -> {
-                            text = "$filename | ${size.asBestMatchingUnit()}"
+                            text = "$name | ${size.asBestMatchingUnit()}"
                             graphic = null
                         }
                     }
