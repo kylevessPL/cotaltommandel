@@ -31,6 +31,9 @@ class MainView : View("Cotal Tommandel") {
                 hbox {
                     clientView = vbox {
                         hgrow = ALWAYS
+                        heightProperty().addListener { _ ->
+                            vvalue = 1.0
+                        }
                     }
                 }
             }

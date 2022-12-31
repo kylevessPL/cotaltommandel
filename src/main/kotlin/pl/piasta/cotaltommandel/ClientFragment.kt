@@ -1,6 +1,7 @@
 package pl.piasta.cotaltommandel
 
 import com.devskiller.friendly_id.FriendlyId.createFriendlyId
+import java.lang.Thread.sleep
 import javafx.beans.binding.Bindings.or
 import javafx.beans.property.SimpleListProperty
 import javafx.scene.control.TreeItem
@@ -16,6 +17,7 @@ import pl.piasta.cotaltommandel.FSNode.Directory.Root
 import pl.piasta.cotaltommandel.FSNode.File
 import pl.piasta.cotaltommandel.Styles.Companion.actionPane
 import pl.piasta.cotaltommandel.Styles.Companion.driveLabel
+import pl.piasta.cotaltommandel.Styles.Companion.drivePane
 import pl.piasta.cotaltommandel.Styles.Companion.progressLabel
 import tornadofx.Controller
 import tornadofx.Fragment
@@ -42,7 +44,7 @@ import tornadofx.vgrow
 import tornadofx.visibleWhen
 import wtf.metio.storageunits.model.Byte
 
-class DriveFragment : Fragment("Drive Tree View") {
+class DriveFragment : Fragment("Drive Fragment") {
     val drive: String by param()
     val nodes: MutableList<FSNode> by param()
 
@@ -84,6 +86,7 @@ class DriveFragment : Fragment("Drive Tree View") {
                 }
             }
         }
+        addClass(drivePane)
     }
 }
 
@@ -96,7 +99,7 @@ class ClientFragment : Fragment("Client Fragment") {
         vgrow = ALWAYS
         add(
             find<DriveFragment>(
-                DriveFragment::drive to clientViewModel.getClientName(),
+                DriveFragment::drive to clientViewModel.clientName,
                 DriveFragment::nodes to clientViewModel.files
             )
         )
@@ -132,6 +135,7 @@ class ClientViewModel : ViewModel() {
 
     val status = TaskStatus()
     val files = SimpleListProperty(mutableListOf<File>().asObservable())
+    val clientName by lazy { "$CLIENT_NAME_PREFIX$clientNumber" }
     private val clientController: ClientController by inject()
     private val sharedModel = scope.sharedModel
     private val clientNumber = ++sharedModel.clientCount
@@ -140,23 +144,24 @@ class ClientViewModel : ViewModel() {
 
     fun transfer() {
         val resource = files.first()
-        runAsync(status) {
+        runAsync(true, status) {
             var progress: Double
             val transferRate = clientController.calculateTransferRate(resource.size)
+            updateStatus(0.0)
+            sleep(1000)
             do {
                 val sizeLeft = clientController.calculateSizeLeft(resource.size, bytesTransferred)
                 val priority = clientController.calculatePriority(sharedModel.clientCount, timeElapsed, sizeLeft)
-                val priorityTotal = sharedModel.clientPriority.plus(clientNumber to priority)
+                val priorityTotal = sharedModel.clientPriority + (clientNumber to priority)
                 runLater { sharedModel.clientPriority.replaceAll(priorityTotal) }
                 val priorityRate = clientController.calculatePriorityRate(priority, priorityTotal)
                 bytesTransferred += clientController.copyNextChunk(sizeLeft, priorityRate, transferRate)
                 timeElapsed++
                 progress = bytesTransferred / resource.size
-                updateMessage("${(progress * 100).toInt()}%")
-                updateProgress(progress, 1.0)
-                Thread.sleep(1000)
+                updateStatus(progress)
+                sleep(1000)
             } while (progress < 1.0)
-            clientController.findServerClientDirectory(sharedModel.serverFiles, getClientName())
+            clientController.findServerClientDirectory(sharedModel.serverFiles, clientName)
         }.ui {
             sharedModel.clientPriority.remove(clientNumber)
             files.clear()
@@ -164,10 +169,8 @@ class ClientViewModel : ViewModel() {
         }
     }
 
-    fun getClientName() = "$CLIENT_NAME_PREFIX$clientNumber"
-
     fun generateFile() {
-        runAsync(status) {
+        runAsync(true) {
             clientController.createFile()
         } ui {
             updateFiles(it)
@@ -175,7 +178,6 @@ class ClientViewModel : ViewModel() {
     }
 
     private fun updateServer(clientDirectory: Directory?, file: File) {
-        val clientName = getClientName()
         clientDirectory
             ?.children
             ?.add(file)
@@ -193,9 +195,9 @@ class ClientViewModel : ViewModel() {
 }
 
 class ClientController : Controller() {
-    fun findServerClientDirectory(serverFiles: MutableList<FSNode>, clientName: String) =
-        serverFiles.filterIsInstance<Directory>()
-            .firstOrNull { e -> e.dirname == clientName }
+    fun findServerClientDirectory(serverFiles: MutableList<FSNode>, clientName: String) = serverFiles
+        .filterIsInstance<Directory>()
+        .firstOrNull { e -> e.dirname == clientName }
 
     fun createFile() = File(createFriendlyId(), Random.nextLong(1, 900000000).asByte())
 
@@ -208,9 +210,8 @@ class ClientController : Controller() {
 
     fun calculateTransferRate(totalSize: Byte) = ceil(DATA_TRANSFER_RATE * totalSize.toLong()).toLong()
 
-    fun copyNextChunk(size: Byte, priorityRate: Double, transferRate: Long) =
-        ceil(size.toLong() * priorityRate)
-            .toLong()
-            .coerceAtMost(transferRate)
-            .asByte()
+    fun copyNextChunk(size: Byte, priorityRate: Double, transferRate: Long) = ceil(size.toLong() * priorityRate)
+        .toLong()
+        .coerceAtMost(transferRate)
+        .asByte()
 }

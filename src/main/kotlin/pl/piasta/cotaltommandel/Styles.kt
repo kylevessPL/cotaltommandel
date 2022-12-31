@@ -11,8 +11,9 @@ import tornadofx.px
 
 class Styles : Stylesheet() {
     companion object {
-        val actionPane by cssclass()
         val addClientButton by cssclass()
+        val actionPane by cssclass()
+        val drivePane by cssclass()
         val driveLabel by cssclass()
         val progressLabel by cssclass()
     }
@@ -26,19 +27,22 @@ class Styles : Stylesheet() {
             minHeight = 80.px
         }
         scrollPane {
-            minWidth = 200.px
+            minWidth = 300.px
             fitToWidth = true
             fitToHeight = true
             hBarPolicy = NEVER
-        }
-        actionPane {
-            padding = box(5.px)
-            spacing = 5.px
         }
         addClientButton {
             minWidth = 50.px
             minHeight = 50.px
             backgroundRadius = multi(box(50.percent))
+        }
+        actionPane {
+            padding = box(5.px)
+            spacing = 5.px
+        }
+        drivePane {
+            padding = box(0.px, 0.px, 0.99.px, 0.px)
         }
         driveLabel {
             fontSize = 14.px
