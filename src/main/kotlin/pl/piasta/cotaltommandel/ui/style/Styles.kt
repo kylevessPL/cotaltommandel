@@ -1,4 +1,4 @@
-package pl.piasta.cotaltommandel
+package pl.piasta.cotaltommandel.ui.style
 
 import javafx.geometry.Pos.BASELINE_RIGHT
 import javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER
@@ -9,7 +9,7 @@ import tornadofx.multi
 import tornadofx.percent
 import tornadofx.px
 
-class Styles : Stylesheet() {
+internal class Styles : Stylesheet() {
     companion object {
         val addClientButton by cssclass()
         val actionPane by cssclass()

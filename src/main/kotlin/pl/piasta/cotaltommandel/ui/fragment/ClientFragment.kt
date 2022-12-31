@@ -1,42 +1,38 @@
-package pl.piasta.cotaltommandel
+package pl.piasta.cotaltommandel.ui.fragment
 
-import com.devskiller.friendly_id.FriendlyId.createFriendlyId
-import java.lang.Thread.sleep
+import com.devskiller.friendly_id.FriendlyId
 import javafx.beans.binding.Bindings.or
 import javafx.beans.property.SimpleListProperty
-import javafx.scene.control.TreeItem
 import javafx.scene.image.Image
 import javafx.scene.layout.Priority.ALWAYS
 import kotlin.math.ceil
 import kotlin.random.Random
-import pl.piasta.cotaltommandel.Constants.CLIENT_NAME_PREFIX
-import pl.piasta.cotaltommandel.Constants.DATA_TRANSFER_RATE
-import pl.piasta.cotaltommandel.Constants.IMAGE_ASSETS
-import pl.piasta.cotaltommandel.FSNode.Directory
-import pl.piasta.cotaltommandel.FSNode.Directory.Root
-import pl.piasta.cotaltommandel.FSNode.File
-import pl.piasta.cotaltommandel.Styles.Companion.actionPane
-import pl.piasta.cotaltommandel.Styles.Companion.driveLabel
-import pl.piasta.cotaltommandel.Styles.Companion.drivePane
-import pl.piasta.cotaltommandel.Styles.Companion.progressLabel
+import pl.piasta.cotaltommandel.common.Constants
+import pl.piasta.cotaltommandel.common.Constants.IMAGE_ASSETS
+import pl.piasta.cotaltommandel.common.asByte
+import pl.piasta.cotaltommandel.common.asView
+import pl.piasta.cotaltommandel.common.div
+import pl.piasta.cotaltommandel.common.minus
+import pl.piasta.cotaltommandel.common.plus
+import pl.piasta.cotaltommandel.common.replaceAll
+import pl.piasta.cotaltommandel.common.updateStatus
+import pl.piasta.cotaltommandel.ui.FSNode
+import pl.piasta.cotaltommandel.ui.shared.SharedDataScope
+import pl.piasta.cotaltommandel.ui.style.Styles.Companion.actionPane
+import pl.piasta.cotaltommandel.ui.style.Styles.Companion.progressLabel
 import tornadofx.Controller
 import tornadofx.Fragment
-import tornadofx.Scope
 import tornadofx.TaskStatus
 import tornadofx.ViewModel
 import tornadofx.action
 import tornadofx.addClass
 import tornadofx.asObservable
 import tornadofx.button
-import tornadofx.cellFormat
 import tornadofx.disableWhen
 import tornadofx.hbox
 import tornadofx.hgrow
 import tornadofx.label
-import tornadofx.populate
 import tornadofx.progressbar
-import tornadofx.runLater
-import tornadofx.treeview
 import tornadofx.useMaxHeight
 import tornadofx.useMaxWidth
 import tornadofx.vbox
@@ -44,55 +40,7 @@ import tornadofx.vgrow
 import tornadofx.visibleWhen
 import wtf.metio.storageunits.model.Byte
 
-class DriveFragment : Fragment("Drive Fragment") {
-    val drive: String by param()
-    val nodes: MutableList<FSNode> by param()
-
-    override val root = vbox {
-        vgrow = ALWAYS
-        label(drive) {
-            addClass(driveLabel)
-        }
-        treeview<FSNode>(TreeItem(Root(drive, nodes))) {
-            vgrow = ALWAYS
-            populate {
-                with(it) {
-                    isExpanded = true
-                    when (val node = value) {
-                        is Directory -> node.children
-                        is File -> null
-                    }
-                }
-            }
-
-            cellFormat {
-                with(it) {
-                    when (this) {
-                        is Directory -> {
-                            text = dirname
-                            graphic = Image(
-                                when (this) {
-                                    is Root -> "$IMAGE_ASSETS/directory-root.png"
-                                    else -> "$IMAGE_ASSETS/directory.png"
-                                }
-                            ).asView()
-                        }
-
-                        is File -> {
-                            text = "$filename | ${size.asBestMatchingUnit()}"
-                            graphic = null
-                        }
-                    }
-                }
-            }
-        }
-        addClass(drivePane)
-    }
-}
-
-class SharedDataScope(val sharedModel: SharedModel) : Scope()
-
-class ClientFragment : Fragment("Client Fragment") {
+internal class ClientFragment : Fragment("Client Fragment") {
     private val clientViewModel: ClientViewModel by inject()
 
     override val root = vbox {
@@ -130,12 +78,12 @@ class ClientFragment : Fragment("Client Fragment") {
     }
 }
 
-class ClientViewModel : ViewModel() {
+internal class ClientViewModel : ViewModel() {
     override val scope = super.scope as SharedDataScope
 
     val status = TaskStatus()
-    val files = SimpleListProperty(mutableListOf<File>().asObservable())
-    val clientName by lazy { "$CLIENT_NAME_PREFIX$clientNumber" }
+    val files = SimpleListProperty(mutableListOf<FSNode.File>().asObservable())
+    val clientName by lazy { "${Constants.CLIENT_NAME_PREFIX}$clientNumber" }
     private val clientController: ClientController by inject()
     private val sharedModel = scope.sharedModel
     private val clientNumber = ++sharedModel.clientCount
@@ -148,18 +96,18 @@ class ClientViewModel : ViewModel() {
             var progress: Double
             val transferRate = clientController.calculateTransferRate(resource.size)
             updateStatus(0.0)
-            sleep(1000)
+            Thread.sleep(1000)
             do {
                 val sizeLeft = clientController.calculateSizeLeft(resource.size, bytesTransferred)
                 val priority = clientController.calculatePriority(sharedModel.clientCount, timeElapsed, sizeLeft)
                 val priorityTotal = sharedModel.clientPriority + (clientNumber to priority)
-                runLater { sharedModel.clientPriority.replaceAll(priorityTotal) }
+                tornadofx.runLater { sharedModel.clientPriority.replaceAll(priorityTotal) }
                 val priorityRate = clientController.calculatePriorityRate(priority, priorityTotal)
                 bytesTransferred += clientController.copyNextChunk(sizeLeft, priorityRate, transferRate)
                 timeElapsed++
                 progress = bytesTransferred / resource.size
                 updateStatus(progress)
-                sleep(1000)
+                Thread.sleep(1000)
             } while (progress < 1.0)
             clientController.findServerClientDirectory(sharedModel.serverFiles, clientName)
         }.ui {
@@ -177,16 +125,16 @@ class ClientViewModel : ViewModel() {
         }
     }
 
-    private fun updateServer(clientDirectory: Directory?, file: File) {
+    private fun updateServer(clientDirectory: FSNode.Directory?, file: FSNode.File) {
         clientDirectory
             ?.children
             ?.add(file)
             ?: run {
-                sharedModel.serverFiles.add(Directory(clientName, mutableListOf(file).asObservable()))
+                sharedModel.serverFiles.add(FSNode.Directory(clientName, mutableListOf(file).asObservable()))
             }
     }
 
-    private fun updateFiles(file: File) = with(this.files) {
+    private fun updateFiles(file: FSNode.File) = with(files) {
         timeElapsed = 0
         bytesTransferred = 0L.asByte()
         clear()
@@ -194,12 +142,12 @@ class ClientViewModel : ViewModel() {
     }
 }
 
-class ClientController : Controller() {
+internal class ClientController : Controller() {
     fun findServerClientDirectory(serverFiles: MutableList<FSNode>, clientName: String) = serverFiles
-        .filterIsInstance<Directory>()
+        .filterIsInstance<FSNode.Directory>()
         .firstOrNull { e -> e.dirname == clientName }
 
-    fun createFile() = File(createFriendlyId(), Random.nextLong(1, 900000000).asByte())
+    fun createFile() = FSNode.File(FriendlyId.createFriendlyId(), Random.nextLong(1, 900000000).asByte())
 
     fun calculateSizeLeft(totalSize: Byte, bytesTransferred: Byte) = totalSize - bytesTransferred
 
@@ -208,10 +156,12 @@ class ClientController : Controller() {
 
     fun calculatePriorityRate(priority: Double, priorityTotal: Map<Int, Double>) = priority / priorityTotal.values.sum()
 
-    fun calculateTransferRate(totalSize: Byte) = ceil(DATA_TRANSFER_RATE * totalSize.toLong()).toLong()
+    fun calculateTransferRate(totalSize: Byte) =
+        ceil(Constants.DATA_TRANSFER_RATE * totalSize.toLong()).toLong()
 
-    fun copyNextChunk(size: Byte, priorityRate: Double, transferRate: Long) = ceil(size.toLong() * priorityRate)
-        .toLong()
-        .coerceAtMost(transferRate)
-        .asByte()
+    fun copyNextChunk(size: Byte, priorityRate: Double, transferRate: Long) =
+        ceil(size.toLong() * priorityRate)
+            .toLong()
+            .coerceAtMost(transferRate)
+            .asByte()
 }

@@ -1,4 +1,4 @@
-package pl.piasta.cotaltommandel
+package pl.piasta.cotaltommandel.common
 
 import java.math.BigInteger
 import javafx.scene.image.Image

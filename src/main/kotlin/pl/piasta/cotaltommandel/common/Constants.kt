@@ -1,4 +1,4 @@
-package pl.piasta.cotaltommandel
+package pl.piasta.cotaltommandel.common
 
 object Constants {
     const val IMAGE_ASSETS = "/assets/images"

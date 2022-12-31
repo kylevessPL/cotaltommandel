@@ -1,16 +1,20 @@
-package pl.piasta.cotaltommandel
+package pl.piasta.cotaltommandel.ui.view
 
 import javafx.scene.image.Image
 import javafx.scene.layout.Pane
 import javafx.scene.layout.Priority.ALWAYS
-import pl.piasta.cotaltommandel.Constants.IMAGE_ASSETS
-import pl.piasta.cotaltommandel.Styles.Companion.actionPane
-import pl.piasta.cotaltommandel.Styles.Companion.addClientButton
+import pl.piasta.cotaltommandel.common.Constants.IMAGE_ASSETS
+import pl.piasta.cotaltommandel.common.asView
+import pl.piasta.cotaltommandel.ui.fragment.ClientFragment
+import pl.piasta.cotaltommandel.ui.fragment.DriveFragment
+import pl.piasta.cotaltommandel.ui.shared.SharedDataScope
+import pl.piasta.cotaltommandel.ui.shared.SharedModel
+import pl.piasta.cotaltommandel.ui.style.Styles.Companion.actionPane
+import pl.piasta.cotaltommandel.ui.style.Styles.Companion.addClientButton
 import tornadofx.View
 import tornadofx.ViewModel
 import tornadofx.action
 import tornadofx.addClass
-import tornadofx.asObservable
 import tornadofx.button
 import tornadofx.find
 import tornadofx.hbox
@@ -20,7 +24,7 @@ import tornadofx.splitpane
 import tornadofx.vbox
 import tornadofx.vgrow
 
-class MainView : View("Cotal Tommandel") {
+internal class MainView : View("Cotal Tommandel") {
     private val viewModel: MainViewModel by inject()
     private lateinit var clientView: Pane
 
@@ -59,12 +63,6 @@ class MainView : View("Cotal Tommandel") {
     }
 }
 
-class SharedModel {
-    val serverFiles = mutableListOf<FSNode>().asObservable()
-    val clientPriority = mutableMapOf<Int, Double>()
-    var clientCount = 0
-}
-
-class MainViewModel : ViewModel() {
+internal class MainViewModel : ViewModel() {
     val sharedModel = SharedModel()
 }
