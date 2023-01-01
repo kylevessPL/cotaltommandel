@@ -81,10 +81,6 @@ internal class ClientFragment : Fragment("Client Fragment") {
                 addClass(progressLabel)
                 visibleWhen(clientViewModel.status.running)
             }
-            label {
-                useMaxHeight = true
-                visibleWhen(clientViewModel.status.running)
-            }
             addClass(actionPane)
         }
     }
