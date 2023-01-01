@@ -2,6 +2,8 @@ package pl.piasta.cotaltommandel.common
 
 object Constants {
     const val IMAGE_ASSETS = "/assets/images"
-    const val DATA_TRANSFER_RATE = 0.1
     const val CLIENT_NAME_PREFIX = "Client"
+    const val DATA_TRANSFER_MAX_SIZE_B = 204800L
+    const val FILE_SIZE_MIN_KB = 200L
+    const val FILE_SIZE_MAX_MB = 50L
 }
