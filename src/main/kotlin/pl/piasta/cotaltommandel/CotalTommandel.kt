@@ -13,7 +13,7 @@ class CotalTommandel : App(MainView::class, Styles::class) {
     override fun start(stage: Stage) {
         setStageIcon(Image("$IMAGE_ASSETS/icon.png"))
         with(stage) {
-            minWidth = 650.0
+            minWidth = 900.0
             minHeight = 400.0
             super.start(this)
         }

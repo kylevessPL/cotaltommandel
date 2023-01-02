@@ -2,9 +2,12 @@ package pl.piasta.cotaltommandel.ui.main.fragment
 
 import com.devskiller.friendly_id.FriendlyId.createFriendlyId
 import java.lang.Thread.sleep
-import java.math.BigDecimal
 import java.security.SecureRandom
+import java.util.Locale.US
+import javafx.beans.binding.Bindings.and
 import javafx.beans.binding.Bindings.or
+import javafx.beans.property.SimpleDoubleProperty
+import javafx.beans.property.SimpleIntegerProperty
 import javafx.beans.property.SimpleListProperty
 import javafx.scene.image.Image
 import javafx.scene.layout.Priority.ALWAYS
@@ -14,18 +17,23 @@ import pl.piasta.cotaltommandel.common.Constants.DATA_TRANSFER_MAX_SIZE_B
 import pl.piasta.cotaltommandel.common.Constants.FILE_SIZE_MAX_MB
 import pl.piasta.cotaltommandel.common.Constants.FILE_SIZE_MIN_KB
 import pl.piasta.cotaltommandel.common.Constants.IMAGE_ASSETS
+import pl.piasta.cotaltommandel.common.Constants.SIZE_PRIORITY_MULTIPLIER
+import pl.piasta.cotaltommandel.common.Constants.STATE_READY
 import pl.piasta.cotaltommandel.common.asByte
+import pl.piasta.cotaltommandel.common.asDurationString
 import pl.piasta.cotaltommandel.common.asView
 import pl.piasta.cotaltommandel.common.div
 import pl.piasta.cotaltommandel.common.minus
 import pl.piasta.cotaltommandel.common.plus
 import pl.piasta.cotaltommandel.common.runLaterBlocking
+import pl.piasta.cotaltommandel.common.toInt
 import pl.piasta.cotaltommandel.common.updateStatus
 import pl.piasta.cotaltommandel.ui.main.FSNode
 import pl.piasta.cotaltommandel.ui.main.FSNode.Directory
 import pl.piasta.cotaltommandel.ui.main.FSNode.File
 import pl.piasta.cotaltommandel.ui.main.SharedDataScope
 import pl.piasta.cotaltommandel.ui.main.Styles.Companion.actionPane
+import pl.piasta.cotaltommandel.ui.main.Styles.Companion.elapsedTimeLabel
 import pl.piasta.cotaltommandel.ui.main.Styles.Companion.progressLabel
 import tornadofx.Controller
 import tornadofx.Fragment
@@ -40,6 +48,7 @@ import tornadofx.hbox
 import tornadofx.hgrow
 import tornadofx.label
 import tornadofx.progressbar
+import tornadofx.runLater
 import tornadofx.useMaxHeight
 import tornadofx.useMaxWidth
 import tornadofx.vbox
@@ -49,37 +58,51 @@ import wtf.metio.storageunits.model.Byte
 
 
 internal class ClientFragment : Fragment("Client Fragment") {
-    private val clientViewModel: ClientViewModel by inject()
+    private val viewModel: ClientViewModel by inject()
 
     override val root = vbox {
         vgrow = ALWAYS
         add(
             find<DriveFragment>(
-                DriveFragment::drive to clientViewModel.clientName,
-                DriveFragment::nodes to clientViewModel.files
+                DriveFragment::drive to viewModel.clientName,
+                DriveFragment::nodes to viewModel.files
             )
         )
         hbox {
+            val runnningBinding = viewModel.timeElapsed.greaterThan(-1)
+            val currentBinding = with(viewModel) {
+                sharedModel.currentRunning.isEqualTo(clientNumber)
+            }
             button("Draw") {
                 graphic = Image("$IMAGE_ASSETS/question-mark.png").asView()
-                disableWhen(clientViewModel.status.running)
-                action(clientViewModel::generateFile)
+                disableWhen(runnningBinding)
+                action(viewModel::generateFile)
             }
-            button("Start") {
-                graphic = Image("$IMAGE_ASSETS/run.png").asView()
-                disableWhen(or(clientViewModel.status.running, clientViewModel.files.emptyProperty()))
-                action(clientViewModel::transfer)
+            button("Queue") {
+                graphic = Image("$IMAGE_ASSETS/plus.png").asView()
+                disableWhen(or(viewModel.files.emptyProperty(), runnningBinding))
+                action(viewModel::run)
             }
-            progressbar(clientViewModel.status.progress) {
+            progressbar(viewModel.status.progress) {
                 useMaxHeight = true
                 useMaxWidth = true
                 hgrow = ALWAYS
-                visibleWhen(clientViewModel.status.running)
+                visibleWhen(viewModel.status.running)
             }
-            label(clientViewModel.status.message) {
+            label(viewModel.status.message) {
                 useMaxHeight = true
+                visibleWhen(viewModel.status.running)
                 addClass(progressLabel)
-                visibleWhen(clientViewModel.status.running)
+            }
+            label(viewModel.timeElapsed.asDurationString()) {
+                useMaxHeight = true
+                visibleWhen(and(viewModel.status.running, !currentBinding))
+                addClass(elapsedTimeLabel)
+            }
+            label(viewModel.priorityRate.asString(US, "%.2f")) {
+                graphic = Image("$IMAGE_ASSETS/up-arrow.png").asView()
+                useMaxHeight = true
+                visibleWhen(and(viewModel.status.running, !currentBinding))
             }
             addClass(actionPane)
         }
@@ -93,40 +116,49 @@ internal class ClientViewModel : ViewModel() {
     val files = SimpleListProperty(mutableListOf<File>().asObservable())
     val clientName by lazy { "$CLIENT_NAME_PREFIX$clientNumber" }
     private val clientController: ClientController by inject()
-    private val sharedModel = scope.sharedModel
-    private val clientNumber = ++sharedModel.clientCount
-    private var timeElapsed = 0
-    private var bytesTransferred = 0L.asByte()
+    val priorityRate = SimpleDoubleProperty(1.0)
+    val timeElapsed = SimpleIntegerProperty(-1)
+    val sharedModel = scope.sharedModel
+    val clientNumber = ++sharedModel.clientCount
 
-    fun transfer() {
+    fun run() {
+        timeElapsed.value++
         val resource = files.first()
         runAsync(true, status) {
-            var progress: Double
-            updateStatus(0.0)
-            sleep(1000)
+            var progress = 0.0
+            var bytesTransferred = 0L.asByte()
+            updateStatus(progress)
             do {
-                timeElapsed++
-                val sizeLeft = clientController.calculateSizeLeft(resource.size, bytesTransferred)
-                var clientCount = runLaterBlocking { sharedModel.clientPriority.keys.count() }!!
-                timeElapsed.takeIf { it == 1 }?.let { clientCount++ }
-                val priority = clientController.calculatePriority(clientCount, timeElapsed, sizeLeft)
-                val clientPriority = runLaterBlocking {
-                    sharedModel.clientPriority += clientNumber to priority
-                    sharedModel.clientPriority
-                }!!
-                val priorityRate = clientController.calculatePriorityRate(priority, clientPriority)
-                val bytesAdded = clientController.copyNextChunk(sizeLeft, priorityRate)
-                bytesTransferred += bytesAdded
-                progress = bytesTransferred / resource.size
-                if (clientName == "Client1")
-                    println("priority: ${BigDecimal(priority).toPlainString()}, priorityRate:$priorityRate, sizeLeft: $sizeLeft, bytesTransferred: $bytesTransferred, bytesAdded: $bytesAdded, progress: $progress")
-                updateStatus(progress)
                 sleep(1000)
+                val currentRunning = runLaterBlocking { sharedModel.currentRunning.get() }!!
+                if (currentRunning != clientNumber) {
+                    val elapsed = runLaterBlocking { ++timeElapsed.value }!!
+                    val clientCount = runLaterBlocking {
+                        sharedModel.clientPriority.keys.count() + (elapsed == 1).toInt() - (sharedModel.currentRunning.value != STATE_READY).toInt()
+                    }!!
+                    val priority = clientController.calculatePriority(clientCount, elapsed, resource.size)
+                    val clientPriority = runLaterBlocking {
+                        sharedModel.clientPriority += clientNumber to priority
+                        sharedModel.clientPriority - currentRunning
+                    }!!
+                    val priorityFinal = clientController.calculatePriorityRate(priority, clientPriority)
+                    runLater { priorityRate.value = priorityFinal }
+                } else {
+                    val sizeLeft = clientController.calculateSizeLeft(resource.size, bytesTransferred)
+                    bytesTransferred += clientController.copyNextChunk(sizeLeft)
+                    progress = bytesTransferred / resource.size
+                    updateStatus(progress)
+                }
             } while (progress < 1.0)
+            sleep(500)
             val serverFiles = runLaterBlocking { sharedModel.serverFiles }!!
             clientController.findServerClientDirectory(serverFiles, clientName)
         }.ui {
-            sharedModel.clientPriority.remove(clientNumber)
+            with(sharedModel) {
+                timeElapsed.value = -1
+                clientPriority.remove(clientNumber)
+                currentRunning.set(STATE_READY)
+            }
             files.clear()
             updateServer(it, resource)
         }
@@ -150,8 +182,7 @@ internal class ClientViewModel : ViewModel() {
     }
 
     private fun updateFiles(file: File) = with(files) {
-        timeElapsed = 0
-        bytesTransferred = 0L.asByte()
+        timeElapsed.value = -1
         clear()
         addAll(file)
     }
@@ -179,11 +210,11 @@ internal class ClientController : Controller() {
     fun calculateSizeLeft(totalSize: Byte, bytesTransferred: Byte) = totalSize - bytesTransferred
 
     fun calculatePriority(clientsTotal: Int, timeElapsed: Int, sizeLeft: Byte) =
-        clientsTotal / sizeLeft.toDouble() * 10.0 + timeElapsed / clientsTotal
+        clientsTotal / sizeLeft.toDouble() * SIZE_PRIORITY_MULTIPLIER + timeElapsed / clientsTotal
 
     fun calculatePriorityRate(priority: Double, priorityTotal: Map<Int, Double>) = priority / priorityTotal.values.sum()
 
-    fun copyNextChunk(size: Byte, priorityRate: Double) = ceil(size.toLong() * priorityRate).toLong()
+    fun copyNextChunk(size: Byte) = ceil(size.toDouble()).toLong()
         .coerceAtMost(DATA_TRANSFER_MAX_SIZE_B)
         .asByte()
 }

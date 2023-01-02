@@ -1,18 +1,30 @@
 package pl.piasta.cotaltommandel.common
 
-import java.math.BigInteger
 import java.util.concurrent.CountDownLatch
+import javafx.beans.binding.Bindings.createStringBinding
+import javafx.beans.binding.IntegerExpression
+import javafx.beans.binding.StringBinding
 import javafx.scene.image.Image
 import javafx.scene.image.ImageView
+import kotlin.time.Duration.Companion.days
+import kotlin.time.Duration.Companion.seconds
 import tornadofx.FXTask
 import tornadofx.runLater
 import wtf.metio.storageunits.model.Byte
 
-fun Long.asByte() = Byte.valueOf(BigInteger.valueOf(this))
+fun Long.asByte() = Byte.valueOf(toBigInteger())
 fun Image.asView() = ImageView(this)
-fun <K, V> MutableMap<K, V>.replaceAll(map: Map<K, V>) {
-    clear()
-    putAll(map)
+fun Boolean.toInt() = if (this) 1 else 0
+fun IntegerExpression.asDurationString(): StringBinding {
+    fun durationString(): String {
+        val duration = value.seconds
+        return when (duration.inWholeDays > 1) {
+            true -> "${1.days}+"
+            false -> duration.toString()
+        }
+    }
+
+    return createStringBinding({ durationString() }, this)
 }
 
 fun <T> FXTask<T>.updateStatus(progress: Double) {
